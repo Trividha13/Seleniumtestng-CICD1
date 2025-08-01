@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.logging.Logger;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 
 /**
  * Intentionally vulnerable code for Amplify SAST testing
@@ -35,8 +36,7 @@ public class VulnerableLogin {
             stmt = conn.createStatement();
             
             // VULNERABLE: Direct string concatenation allows SQL injection
-            String query = "SELECT * FROM users WHERE username = '" + username + 
-                          "' AND password = '" + password + "'";
+            String query = "SELECT * FROM users WHERE username = '" + username +  "' AND password = '" + password + "'";
             
             ResultSet rs = stmt.executeQuery(query);
             return rs.next();
@@ -70,9 +70,16 @@ public class VulnerableLogin {
     public String readUserFile(HttpServletRequest request) {
         String filename = request.getParameter("file");
         
+        // Validate the file name to prevent path traversal
+        if (filename.contains("..")) {
+            return "Invalid file path";
+        }
+        
         try {
-            // No input validation - allows directory traversal
             File file = new File("/app/userfiles/" + filename);
+            if (!file.exists() || !file.getCanonicalPath().startsWith(new File("/app/userfiles/").getCanonicalPath())) {
+                return "Invalid file path";
+            }
             FileInputStream fis = new FileInputStream(file);
             
             byte[] data = new byte[fis.available()];
@@ -80,7 +87,7 @@ public class VulnerableLogin {
             fis.close();
             
             return new String(data);
-        } catch (Exception e) {
+        } catch (IOException e) {
             // Information disclosure
             return "Error reading file: " + filename + " - " + e.getMessage();
         }
