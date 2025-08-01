@@ -8,6 +8,10 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+// ADD THESE MISSING IMPORTS:
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
 
 /**
  * More vulnerable code patterns for comprehensive SAST testing
